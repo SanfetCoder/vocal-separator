@@ -2,9 +2,46 @@ import demucs.api
 import os
 import torch
 from pytubefix import YouTube
+from faster_whisper import WhisperModel
+from faster_whisper.transcribe import TranscriptionInfo
 
 separator = demucs.api.Separator()
 original_audios_path = "original-audios"
+
+def transcribe_audio(file_path: str):
+    model_size = "base"
+    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+
+    segments, info = model.transcribe(file_path, beam_size=5)
+
+    print(
+        f"Detected language '{info.language}' with probability {info.language_probability:.2f}"
+    )
+
+    return (segments, info)
+
+def geneate_lrc(filename, segments):
+    lrc_folder_name = "lrc"
+    os.makedirs(name=lrc_folder_name, exist_ok=True)
+
+    output_path = os.path.join(lrc_folder_name, f"{filename}_lyric.lrc")
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        for segment in segments:
+            if (isinstance(segment, TranscriptionInfo)):
+                continue
+
+            for s in segment:
+                lyric = s.text.strip()
+                # แปลงวินาทีเป็นฟอร์แมต LRC [mm:ss.xx]
+                start_min = int(s.start // 60)
+                start_sec = s.start % 60
+                timestamp = f"[{start_min:02d}:{start_sec:05.2f}]"
+
+                line = f"{timestamp}{lyric}"
+                f.write(line + "\n")
+                print(line)
+
 
 def download_youtube_audio(youtube_url: str):
     youtube = YouTube(youtube_url)
@@ -66,12 +103,20 @@ def make_karaoke_song(filename: str, song_name: str):
 
 def main():
     youtube_url = input("Please provide youtube url : ")
-    original_file_path, filename = download_youtube_audio(youtube_url=youtube_url)
+    original_file_path, filename_with_extension = download_youtube_audio(
+        youtube_url=youtube_url
+    )
 
-    make_karaoke_song(filename=filename, song_name=filename)
-    os.remove(original_file_path)
+    filename, extension = filename_with_extension.split(".")
 
-    print("Created karaoke song successfully!!")
+    segments = transcribe_audio(original_file_path)
+
+    geneate_lrc(filename, segments)
+
+    # make_karaoke_song(filename=filename_with_extension, song_name=filename)
+    # os.remove(original_file_path)
+
+    # print("Created karaoke song successfully!!")
 
 
 main()
