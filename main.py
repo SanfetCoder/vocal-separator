@@ -10,16 +10,6 @@ def separate_audio_file(filename, original_audio_folder = "original-audios"):
     origin, separated = separator.separate_audio_file(f"{original_audio_folder}/{filename}")
 
     for stem, source in separated.items():
-        output_dir = "separated-audios"
-        os.makedirs(name=output_dir, exist_ok=True)
-
-        file_output_extension = "wav"
-        filename_with_extension = f"{filename}_{stem}.{file_output_extension}"
-        save_path = os.path.join(output_dir, filename_with_extension)
-
-        # Save file to the path
-        demucs.api.save_audio(source, save_path, samplerate=separator.samplerate)
-
         sources[stem] = source
 
     return sources
