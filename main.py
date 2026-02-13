@@ -17,7 +17,7 @@ def download_youtube_audio(youtube_url: str):
     split_path = downloaded_file_path.split("/")
     filename = split_path[len(split_path) - 1]
 
-    return filename
+    return (downloaded_file_path, filename)
 
 
 def separate_audio_file(filename):
@@ -69,10 +69,12 @@ def make_karaoke_song(filename: str, song_name: str):
 
 def main():
     youtube_url = input("Please provide youtube url : ")
-
-    filename = download_youtube_audio(youtube_url=youtube_url)
+    original_file_path, filename = download_youtube_audio(youtube_url=youtube_url)
 
     make_karaoke_song(filename=filename, song_name=filename)
+    os.remove(original_file_path)
+
+    print("Created karaoke song successfully!!")
 
 
 main()
