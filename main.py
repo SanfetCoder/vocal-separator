@@ -8,9 +8,10 @@ from faster_whisper.transcribe import TranscriptionInfo
 separator = demucs.api.Separator()
 original_audios_path = "original-audios"
 
+
 def transcribe_audio(file_path: str):
     model_size = "base"
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    model = WhisperModel(model_size, device="cpu", compute_type="int8", timestamp=True)
 
     segments, info = model.transcribe(file_path, beam_size=5)
 
@@ -20,6 +21,7 @@ def transcribe_audio(file_path: str):
 
     return (segments, info)
 
+
 def geneate_lrc(filename, segments):
     lrc_folder_name = "lrc"
     os.makedirs(name=lrc_folder_name, exist_ok=True)
@@ -28,7 +30,7 @@ def geneate_lrc(filename, segments):
 
     with open(output_path, "w", encoding="utf-8") as f:
         for segment in segments:
-            if (isinstance(segment, TranscriptionInfo)):
+            if isinstance(segment, TranscriptionInfo):
                 continue
 
             for s in segment:
@@ -108,15 +110,13 @@ def main():
     )
 
     filename, extension = filename_with_extension.split(".")
-
     segments = transcribe_audio(original_file_path)
-
     geneate_lrc(filename, segments)
 
-    # make_karaoke_song(filename=filename_with_extension, song_name=filename)
-    # os.remove(original_file_path)
+    make_karaoke_song(filename=filename_with_extension, song_name=filename)
+    os.remove(original_file_path)
 
-    # print("Created karaoke song successfully!!")
+    print("Created karaoke song successfully!!")
 
 
 main()
