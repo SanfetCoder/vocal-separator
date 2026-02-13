@@ -13,6 +13,7 @@ networkx==3.6.1
 numpy==1.26.4
 omegaconf==2.3.0
 openunmix==1.3.0
+pytube @ git+https://github.com/pytube/pytube@a32fff39058a6f7e5e59ecd06a7467b71197ce35
 PyYAML==6.0.3
 retrying==1.4.2
 submitit==1.5.4

@@ -1,13 +1,31 @@
 import demucs.api
 import os
 import torch
+from pytubefix import YouTube
+import ssl
+import certifi
 
 separator = demucs.api.Separator()
+original_audios_path = "original-audios"
 
-def separate_audio_file(filename, original_audio_folder = "original-audios"):
+
+def download_youtube_audio(youtube_url: str):
+    youtube = YouTube(youtube_url)
+    audio_stream = youtube.streams.get_audio_only()
+
+    downloaded_file_path = audio_stream.download(output_path=original_audios_path)
+    split_path = downloaded_file_path.split("/")
+    filename = split_path[len(split_path) - 1]
+
+    return filename
+
+
+def separate_audio_file(filename):
     sources = {}
 
-    origin, separated = separator.separate_audio_file(f"{original_audio_folder}/{filename}")
+    origin, separated = separator.separate_audio_file(
+        f"{original_audios_path}/{filename}"
+    )
 
     for stem, source in separated.items():
         sources[stem] = source
@@ -16,14 +34,14 @@ def separate_audio_file(filename, original_audio_folder = "original-audios"):
 
 
 def create_song_without_vocal(song_name, sources):
-    stem_to_exclude = ['vocals']
-    
+    stem_to_exclude = ["vocals"]
+
     # 1. Initialize an empty tensor for the backing track
     # We use the shape of one of the existing stems (e.g., 'drums')
-    drum_source = sources['drums']
+    drum_source = sources["drums"]
     backing_track = torch.zeros_like(drum_source)
 
-    # 2. Integrate all stems to the backing_track 
+    # 2. Integrate all stems to the backing_track
     source_stems = sources.keys()
     stems_to_include = [stem for stem in source_stems if stem not in stem_to_exclude]
 
@@ -33,12 +51,13 @@ def create_song_without_vocal(song_name, sources):
 
     # 3. Save the final Backing Track
     output_dir = "backing-tracks"
-    os.makedirs(name = output_dir, exist_ok=True)
+    os.makedirs(name=output_dir, exist_ok=True)
 
-    output_path = os.path.join(output_dir,f"{song_name}.wav")
+    output_path = os.path.join(output_dir, f"{song_name}.wav")
     demucs.api.save_audio(backing_track, output_path, samplerate=separator.samplerate)
 
-def make_karaoke_song(filename : str, song_name : str):
+
+def make_karaoke_song(filename: str, song_name: str):
     separated_sources = separate_audio_file(filename=filename)
 
     print("Separated source!!")
@@ -48,7 +67,12 @@ def make_karaoke_song(filename : str, song_name : str):
     print("Created the song without vocals!!")
 
 
-filename = input("Please provide file name : ")
-song_name = input("Please provide song name : ")
+def main():
+    youtube_url = input("Please provide youtube url : ")
 
-make_karaoke_song(filename, song_name)
+    filename = download_youtube_audio(youtube_url=youtube_url)
+
+    make_karaoke_song(filename=filename, song_name=filename)
+
+
+main()
