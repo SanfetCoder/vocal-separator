@@ -2,12 +2,9 @@ import demucs.api
 import os
 import torch
 from pytubefix import YouTube
-import ssl
-import certifi
 
 separator = demucs.api.Separator()
 original_audios_path = "original-audios"
-
 
 def download_youtube_audio(youtube_url: str):
     youtube = YouTube(youtube_url)
